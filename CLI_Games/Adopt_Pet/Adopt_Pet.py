@@ -186,7 +186,7 @@ while True:
         print(
             f"{blue}\n[1] Feed\n[2] Play\n[3] Sleep\n[4] Do Nothing\n[5] View Inventory"
         )
-        choice = pu.getintegerinput(
+        choice = pu.get_integer_input(
             prompt="\n>>  ",
             min=1,
             max=5,
