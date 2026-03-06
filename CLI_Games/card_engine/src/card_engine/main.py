@@ -700,10 +700,8 @@ def handle_drawn_destination(cards: list[Card], hands_dict: dict[str, Hand]) -> 
     if not cards:
         return
 
-    print(
-        f"\n{Fore.GREEN}Drawn Cards: {Style.RESET_ALL}\
-        {', '.join(str(c) for c in cards)}"
-    )
+    print(f"\n{Fore.GREEN}Drawn Cards: {Style.RESET_ALL}\
+        {', '.join(str(c) for c in cards)}")
     print(f"{Fore.CYAN}Where would you like to place these cards?{Style.RESET_ALL}")
     print("1. A specific Hand")
     print("2. Back to the Deck")
