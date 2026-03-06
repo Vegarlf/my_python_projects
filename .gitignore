@@ -296,5 +296,4 @@ http-client.private.env.json
 
 .vscode
 .mypy_cache
-Utilities
 .mypy_cache
