@@ -411,7 +411,7 @@ def dict_search(data: tuple[dict, ...], criteria: dict) -> tuple[dict, ...]:
 
 # fuck it heres the rest of the shit from that file with the above 3 funcs/classes just do you know
 # how to use it:
-result, columns = csv_reader("testdata.csv")
+"""result, columns = csv_reader("testdata.csv")
 with open("results.txt", "w") as f:
     f.write(
         f"Min Number Of Columns: {columns[0]}\nMax Number Of Columns: {columns[-1]}\n"
@@ -453,7 +453,7 @@ for i, x in enumerate(result):
     print(f"---Row {i}---")
     for k, v in x.items():
         print(f"{k}: {repr(v)}")
-    print("\n")
+    print("\n")"""
 
 if __name__ == "__main__":
     import datetime
