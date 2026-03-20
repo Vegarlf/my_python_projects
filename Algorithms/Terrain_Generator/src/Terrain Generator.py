@@ -1,10 +1,11 @@
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 import time
 
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
 # --- CONFIGURATION ---
-#np.random.seed(42)
+# np.random.seed(42)
 STARTTIME = time.time()
 GRIDSIZE = 500
 SMOOTHNESSA = 250
@@ -13,7 +14,7 @@ SMOOTHNESSB = 25
 # --- CONTROLS ---
 # 1. SEA_LEVEL (0.0 to 1.0):
 #    Where the ocean stops. Higher = Less Land, but mountains stay tall.
-SEA_LEVEL = 0.38
+SEA_LEVEL = 0.35
 
 # 2. ROUGHNESS (0.0 to 1.0):
 #    How much "jagged" noise to add on top of the smooth continents.
@@ -21,18 +22,20 @@ ROUGHNESS_STRENGTH = 0.3
 
 # 3. MOUNTAIN_MULTIPLIER (1.0 to 3.0):
 #    Stretches the mountains up HIGHER without affecting the coast.
-MOUNTAIN_MULTIPLIER = 1.1
+MOUNTAIN_MULTIPLIER = 1.2
+
 
 def gettime(starttime):
     timefinish = time.time() - starttime
     string = f"Calc Done in {timefinish:.3f} seconds."
     return string
 
+
 # --- HELPER FUNCTION: Make a Map Layer ---
 def generate_layer(smooth_steps):
     # 1. Start with noise
     layer = np.random.uniform(0, 1, (GRIDSIZE, GRIDSIZE))
-    
+
     # 2. Smooth it (Vectorized Neighbor Averaging)
     for i in range(smooth_steps):
         up = np.roll(layer, -1, axis=0)
@@ -40,16 +43,17 @@ def generate_layer(smooth_steps):
         left = np.roll(layer, -1, axis=1)
         right = np.roll(layer, 1, axis=1)
         layer = (layer + up + down + left + right) / 5
-        
+
     # 3. Normalize immediately so this layer is predictable (0.0 to 1.0)
     layer = (layer - np.min(layer)) / (np.max(layer) - np.min(layer))
     return layer
 
+
 currentseed = int(time.time())
-currentseed = 1771049923
+
 np.random.seed(currentseed)
 
-#currentseed = None
+# currentseed = None
 
 print(f"Generating World With Seed: {currentseed}")
 
@@ -92,8 +96,8 @@ final_map = final_map * MOUNTAIN_MULTIPLIER
 
 # Currently, max height is (1.0 - SEA_LEVEL). We want it back at 1.0 * Multiplier.
 max_current = np.max(final_map)
-if max_current > 0: # Avoid division by zero if world is empty
-    final_map = final_map / max_current # Now 0.0 to 1.0
+if max_current > 0:  # Avoid division by zero if world is empty
+    final_map = final_map / max_current  # Now 0.0 to 1.0
 # ... (After your terrain generation code) ...
 
 # --- PART 4: PHYSICS (CALCULATING SLOPE) ---
@@ -110,27 +114,29 @@ slope_map = np.hypot(grad_x, grad_y)
 slope_map = (slope_map - np.min(slope_map)) / (np.max(slope_map) - np.min(slope_map))
 
 
-print(gettime(starttime = STARTTIME))
-print(f"Sea Level: {SEA_LEVEL}, Roughness: {ROUGHNESS_STRENGTH}, Mountain Multiplier: {MOUNTAIN_MULTIPLIER}\nGridsize: {GRIDSIZE},  Smoothed: A: {SMOOTHNESSA},   B:{SMOOTHNESSB} ")
+print(gettime(starttime=STARTTIME))
+print(
+    f"Sea Level: {SEA_LEVEL}, Roughness: {ROUGHNESS_STRENGTH}, Mountain Multiplier: {MOUNTAIN_MULTIPLIER}\nGridsize: {GRIDSIZE},  Smoothed: A: {SMOOTHNESSA},   B:{SMOOTHNESSB} "
+)
 
 # --- PART 4: VISUALIZATION ---
 plt.figure(figsize=(14, 7))
 
 # We use vmin=0 to lock Sea Level.
 # We set vmax to MOUNTAIN_MULTIPLIER so the color scale fits our new tall peaks.
-plt.subplot(1,2,1)
+plt.subplot(1, 2, 1)
 sns.heatmap(
-    final_map, 
-    cmap="terrain", 
-    vmin=0, 
-    vmax = 1.0,
-    cbar=True, 
-    xticklabels=False, 
-    yticklabels=False
+    final_map,
+    cmap="terrain",
+    vmin=0,
+    vmax=1.0,
+    cbar=True,
+    xticklabels=False,
+    yticklabels=False,
 )
-plt.title(f"Multi-Layer Terrain")
+plt.title("Multi-Layer Terrain")
 
-plt.subplot(1,2,2)
+plt.subplot(1, 2, 2)
 # 'magma' is great for intensity (Black = Flat, Bright Orange = Cliff)
 sns.heatmap(slope_map, cmap="magma", cbar=True, xticklabels=False, yticklabels=False)
 plt.title("Slope/Cliff Map")
