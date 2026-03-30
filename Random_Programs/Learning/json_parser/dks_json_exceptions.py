@@ -15,7 +15,7 @@ class JSONException(ValueError, ABC):
 
     Inherits From ValueError.
     self.doc can be raw source text, context is generated automatically.
-    self.doc treats "" differently from None, "" is an empty document.
+    self.doc treats "" differently from None, "" is an empty document, while None (default) is no document provided.
     self.pos is index where error occurred.
     negative self.pos is allowed for indexing from end, it gets converted to positive index.
     """
@@ -65,12 +65,12 @@ class JSONException(ValueError, ABC):
             else "~no location_string provided~"
         )
         context: Optional[str] = self.context_snippet
-        source_string = (
+        source_doc_string = (
             f"in document context {context}"
             if context is not None
-            else "~no source_string provided~"
+            else "~no source_doc_string provided~"
         )
-        return f"JSONError {location_string} {source_string}"
+        return f"JSONError {location_string} {source_doc_string}"
 
     @classmethod
     def verify(cls, condition: bool, **kwargs) -> None:
@@ -101,6 +101,16 @@ class JSONStructureError(JSONException):
 
 
 @dataclass(frozen=True, kw_only=True)
+class JSONArrayStructureError(JSONStructureError):
+    """Exception Raised When Invalid Array Object Is Found."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class JSONObjectStructureError(JSONStructureError):
+    """Exception Raised When Invalid Object Is Found."""
+
+
+@dataclass(frozen=True, kw_only=True)
 class JSONEOFError(JSONException):
     """Exception Raised When EOF Is Different From Expected."""
 
@@ -120,3 +130,13 @@ class JSONEOFError(JSONException):
             else "~no expected_string provided~"
         )
         return f"{self.__class__.__name__}, {base_string}, {expected_string}, {received_string}"
+
+
+@dataclass(frozen=True, kw_only=True)
+class JSONUnterminatedStringError(JSONStructureError):
+    """Exception Raised When Parser Encounters An Unterminated String."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class JSONTrailingCommaError(JSONStructureError):
+    """Exception Raised When Parser Encounters A Trailing Comma."""
