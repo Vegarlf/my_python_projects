@@ -1,4 +1,15 @@
-"""Special JSON Exceptions and Errors For The JSON Parser."""
+"""Special JSON Exceptions and Errors For The JSON Parser.
+
+Structure:
+=========
+JSONException - Base Class For All Errors
+|- JSONStructureError - Base Class For Structure Errors In JSON File
+|    |- JSONArrayStructureError - Invalid Array Object
+|    |- JSONObjectStructureError - Invalid Object Object
+|    |- JSONTrailingCommaError - Trailing Comma Error
+|    `-- JSONUnterminatedStringError - Unterminated String
+`--JSONEOFError - JSON End Of File Error, Unexpected End Of File
+"""
 
 # New exceptions will be added here as the parser is built and I encounter new error cases.
 import logging
