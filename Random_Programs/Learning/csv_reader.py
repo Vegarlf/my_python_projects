@@ -1,79 +1,99 @@
 """."""
 
-from typing import Any
+from typing import Any, Optional, Generic, TypeVar, Self
+from collections.abc import Iterable, Mapping, Callable
 
 
-class MoveableDict(dict):
+class MoveableDict[K, V](dict[K, V]):
     """Dict With Functions For Moving Keys To Top Or Bottom."""
 
-    @staticmethod
-    def copy_dict(source: "MoveableDict", target: "MoveableDict") -> dict[Any, Any]:
-        """Copies source to target.
-        WARNING: WILL OVERWRITE target IF IT ALREADY HAS VALUES!!"""
-        target.clear()
-        target.update(source)
-        assert target == source
-        return target
+    def __init__(
+        self, provided_dict: dict[K, V], key_type: type[K], value_type: type[V]
+    ):
+        self.key_type = key_type
+        self.value_type = value_type
+        for k, v in provided_dict.items():
+            self._check(k, v)
+        super().__init__(provided_dict)
 
-    def move_to_top(self, key):
-        """Move Specified Key Value Pair To The Top Of The Dictionary."""
-        if key not in self.keys():
+    def _check(self, k: object, v: object) -> None:
+        if not isinstance(k, self.key_type):
+            raise TypeError(
+                f"Key {k!r} is {type(k).__name__}, expected {self.key_type.__name__}"
+            )
+        if not isinstance(v, self.value_type):
+            raise TypeError(
+                f"Value {v!r} is {type(v).__name__}, expected {self.value_type.__name__}"
+            )
+
+    # inefficient as holy fuck. think of something better you lazy ass.
+    def move_to_top(self, key: Any):
+        """Move Specified Key Value Pair To The Top Of The Dictionary.
+        Returns unchanged if key not in dict."""
+        if key not in self:
             return self
-        _new_dict = self.__class__(
-            {key: self[key], **{_k: _v for _k, _v in self.items() if _k != key}}
-        )
-        MoveableDict.copy_dict(_new_dict, self)
+        for k in list(self):
+            if k != key:
+                self[k] = self.pop(k)
         return self
 
-    def move_to_bottom(self, key):
-        """Move Specified Key Value Pair To The Bottom Of The Dictionary."""
+    def move_to_bottom(self, key: Any):
+        """Move Specified Key Value Pair To The Bottom Of The Dictionary.
+        Returns unchanged if key not in dict."""
         if key not in self.keys():
             return self
         self[key] = self.pop(key)
         return self
 
-    def see_last(self) -> tuple:
-        if self:
-            last_key = self.popitem()
-            self[last_key[0]] = last_key[1]
-            return last_key[0], last_key[1]
-        else:
-            return ()
+    def see_last(self) -> tuple[Any, Any] | None:
+        """returns tuple of k-v pair at end of dict.
+        Returns None if dict not provided"""
+        if not self:
+            return None
+        last_key = next(reversed(self))
+        return last_key, self[last_key]
 
 
-def csv_reader(file_name: str) -> tuple[tuple[dict[str, str], ...], list[int]]:
+type valuedict = dict[str, str]
+
+
+def csv_reader(file_name: str) -> tuple[tuple[valuedict, ...], int]:
     """Read CSV files.
 
     Read csv files, split each row into columns based on commas,
     and create dictionaries for each row with column numbers as keys to values contained in those
     columns.
     everything is treated as a string.
-    also counts the number of columns in each row and creates a sorted ascending list (list[int]).
+    also counts the number of columns in each row and creates a sorted ascending list int.
     this can be used to find maximum and minumum number of columns.
     returns tuple of dictionaries for csv data and list of integers for column numbers.
 
     Parameters
     file_name: str = name of file to be read"""
-    values: list[dict[str, str]] = []
-    _columns_length: list[int] = []
+    values: list[valuedict] = []
+
     with open(file_name, "r") as fx:
         for line_count, line in enumerate(fx):
             if not line.strip(", \n"):
                 values.append({"None": "None"})
                 continue
             split_columns: list[str] = line.rstrip(", \n").split(",")
-            _columns_length.append(len(split_columns))
-            value: MoveableDict = MoveableDict(
-                {f"Column {ix}": a.strip() for ix, a in enumerate(split_columns)}
+            value: MoveableDict[str, str] = MoveableDict(
+                {
+                    "Line No.": str(line_count),
+                    **{f"Column {ix}": a.strip() for ix, a in enumerate(split_columns)},
+                },
+                str,
+                str,
             )
-            value["Line No."] = str(line_count)
-            value.move_to_top("Line No.")
             values.append(value)
-    columns_length: list[int] = sorted(_columns_length)
-    return tuple(values), columns_length
+    max_columns: int = max((len(v) - 1 for v in values), default=0)
+    return tuple(values), max_columns
 
 
-def dict_search(data: tuple[dict, ...], criteria: dict) -> tuple[dict, ...]:
+def dict_search(
+    data: tuple[valuedict, ...], criteria: dict[str, str | Callable[[str | None], bool]]
+) -> tuple[valuedict, ...]:
     """Search If  Specified Criteria Matches A Value In Data.
 
     criteria must be inputted with keys as column values to check from and values
@@ -83,9 +103,9 @@ def dict_search(data: tuple[dict, ...], criteria: dict) -> tuple[dict, ...]:
     dictionary to a list.
 
     Parameters
-    data: tuple[dict]: tuple of dictionaries to check against
+    data: tuple[valuedict]: tuple of dictionaries to check against
     criteria: dict : dictionary of column - value | callable to check against"""
-    results: list[dict] = []
+    results: list[valuedict] = []
     for item in data:
         match = True
         for key, condition in criteria.items():
