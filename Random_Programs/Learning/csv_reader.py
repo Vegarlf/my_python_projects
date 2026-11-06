@@ -26,7 +26,6 @@ class MoveableDict[K, V](dict[K, V]):
                 f"Value {v!r} is {type(v).__name__}, expected {self.value_type.__name__}"
             )
 
-    # inefficient as holy fuck. think of something better you lazy ass.
     def move_to_top(self, key: Any):
         """Move Specified Key Value Pair To The Top Of The Dictionary.
         Returns unchanged if key not in dict."""
@@ -129,13 +128,10 @@ def dict_search(
 if __name__ == "__main__":
     result, columns = csv_reader("testdata.csv")
     with open("results.txt", "w") as f:
-        f.write(
-            f"Min Number Of Columns: {columns[0]}\nMax Number Of Columns: {columns[-1]}\n"
-        )
+        f.write(f"Max Number Of Columns: {columns}\n")
         f.write("-" * 50 + "\n")
 
-    print(f"Min Number Of Columns: {columns[0]}")
-    print(f"Max Number Of Columns: {columns[-1]}\n\n")
+    print(f"Max Number Of Columns: {columns}\n\n")
     matches_gryff = dict_search(result, {"Column 6": "True"})
 
     with open("results.txt", "a") as f:
